@@ -55,9 +55,9 @@ jobs:
       - name: Test image
         run: |
           docker run -t --rm --network=host \
-            -v "$(pwd)/:/test" -w /test \
+            -v "$(pwd)/test/:/test" -w /test \
             '${{ env.IMAGE_NAME_FULL }}' \
-            --schemafile schema.json instance.json
+            --schemafile schema.json instance.json --verbose
 
       - name: Tag Minor
         if: "${{ matrix.version.check-jsonschema_minor != '' }}"
