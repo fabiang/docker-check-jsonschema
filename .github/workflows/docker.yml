@@ -1,0 +1,113 @@
+name: Docker Image
+
+on:
+  push:
+    paths-ignore:
+      - "README.md"
+      - "LICENSE.md"
+  pull_request:
+  schedule:
+    - cron: "0 12 1-7 * 2"
+
+jobs:
+  docker-image-alpine:
+    strategy:
+      matrix:
+        version:
+          - alpine: "3.21"
+            python: "3"
+            check-jsonschema: "0.33.0"
+            check-jsonschema-minor: ""
+            check-jsonschema_major: ""
+            latest: false
+
+    env:
+      IMAGE_NAME_FULL: "fabiang/check-jsonschema:${{ matrix.version.check-jsonschema }}"
+      IMAGE_NAME_MINOR: "fabiang/check-jsonschema:${{ matrix.version.check-jsonschema_minor }}"
+      IMAGE_NAME_MAJOR: "fabiang/check-jsonschema:${{ matrix.version.check-jsonschema_major }}"
+      IMAGE_NAME_ALPINE_FULL: "fabiang/check-jsonschema:${{ matrix.version.check-jsonschema }}-alpine${{ matrix.version.alpine }}"
+      IMAGE_NAME_ALPINE_MINOR: "fabiang/check-jsonschema:${{ matrix.version.check-jsonschema_minor }}-alpine${{ matrix.version.alpine }}"
+      IMAGE_NAME_ALPINE_MAJOR: "fabiang/check-jsonschema:${{ matrix.version.check-jsonschema_major }}-alpine${{ matrix.version.alpine }}"
+      IMAGE_LATEST: "fabiang/check-jsonschema:latest"
+      IMAGE_LATEST_ALPINE: "fabiang/check-jsonschema:alpine-latest"
+      IMAGE_LATEST_ALPINE_MINOR: "fabiang/check-jsonschema:${{ matrix.version.check-jsonschema_minor }}-alpine"
+      IMAGE_LATEST_ALPINE_MAJOR: "fabiang/check-jsonschema:${{ matrix.version.check-jsonschema_major }}-alpine"
+
+    runs-on: ubuntu-latest
+
+    name: "check-jsonschema v${{ matrix.version.check-jsonschema }} (Alpine ${{ matrix.version.alpine }})"
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build Image
+        run: |
+          docker build -f alpine/Dockerfile \
+            -t '${{ env.IMAGE_NAME_FULL }}' \
+            -t '${{ env.IMAGE_NAME_ALPINE_FULL }}' \
+            '--build-arg=ALPINE_VERSION=${{ matrix.version.alpine }}' \
+            '--build-arg=PYTHON_VERSION=${{ matrix.version.python }}' \
+            \
+            '--build-arg=CHECK_JSONSCHEMA_VERSION=${{ matrix.version.check-jsonschema }}' \
+            \
+            .
+
+      - name: Test image
+        run: |
+          docker run -t --rm --network=host \
+            -v "$(pwd)/:/test" -w /test
+            '${{ env.IMAGE_NAME_FULL }}' \
+            --schemafile schema.json instance.json
+
+      - name: Tag Minor
+        if: "${{ matrix.version.check-jsonschema_minor != '' }}"
+        run: |
+          docker tag '${{ env.IMAGE_NAME_FULL }}' '${{ env.IMAGE_NAME_MINOR }}'
+          docker tag '${{ env.IMAGE_NAME_FULL }}' '${{ env.IMAGE_NAME_ALPINE_MINOR }}'
+          docker tag '${{ env.IMAGE_NAME_FULL }}' '${{ env.IMAGE_LATEST_ALPINE_MINOR }}'
+
+      - name: Tag Major
+        if: "${{ matrix.version.check-jsonschema_major != '' }}"
+        run: |
+          docker tag '${{ env.IMAGE_NAME_FULL }}' '${{ env.IMAGE_NAME_MAJOR }}'
+          docker tag '${{ env.IMAGE_NAME_FULL }}' '${{ env.IMAGE_NAME_ALPINE_MAJOR }}'
+          docker tag '${{ env.IMAGE_NAME_FULL }}' '${{ env.IMAGE_LATEST_ALPINE_MAJOR }}'
+
+      - name: Tag Latest
+        if: "${{ matrix.version.latest == true }}"
+        run: |
+          docker tag '${{ env.IMAGE_NAME_FULL }}' '${{ env.IMAGE_LATEST }}'
+          docker tag '${{ env.IMAGE_NAME_FULL }}' '${{ env.IMAGE_LATEST_ALPINE }}'
+
+      - name: Docker Hub login
+        if: "${{ github.ref == 'refs/heads/main' }}"
+        uses: azure/docker-login@v1
+        with:
+          username: ${{ secrets.CONTAINER_REGISTRY_USERNAME }}
+          password: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
+
+      - name: Push Image
+        if: "${{ github.ref == 'refs/heads/main' }}"
+        run: |
+          docker push '${{ env.IMAGE_NAME_FULL }}'
+          docker push '${{ env.IMAGE_NAME_ALPINE_FULL }}'
+
+      - name: Push Image Minor
+        if: "${{ matrix.version.check-jsonschema_minor != '' && github.ref == 'refs/heads/main' }}"
+        run: |
+          docker push '${{ env.IMAGE_NAME_MINOR }}'
+          docker push '${{ env.IMAGE_NAME_ALPINE_MINOR }}'
+          docker push '${{ env.IMAGE_LATEST_ALPINE_MINOR }}'
+
+      - name: Push Image Major
+        if: "${{ matrix.version.check-jsonschema_major != '' && github.ref == 'refs/heads/main' }}"
+        run: |
+          docker push '${{ env.IMAGE_NAME_MAJOR }}'
+          docker push '${{ env.IMAGE_NAME_ALPINE_MAJOR }}'
+          docker push '${{ env.IMAGE_LATEST_ALPINE_MAJOR }}'
+
+      - name: Push Lastest
+        if: "${{ matrix.version.latest == true && github.ref == 'refs/heads/main' }}"
+        run: |
+          docker push '${{ env.IMAGE_LATEST }}'
+          docker push '${{ env.IMAGE_LATEST_ALPINE }}'
