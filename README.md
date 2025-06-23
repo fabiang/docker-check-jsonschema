@@ -9,6 +9,7 @@ A JSON Schema CLI and pre-commit hook built on jsonschema. The schema may be spe
 
 [See all available tags on hub.docker.com](https://hub.docker.com/r/fabiang/check-jsonschema/tags?ordering=name)
 
+* 0.33.1, 0.33.1-alpine3.21
 * 0.33.0, 0.33.0-alpine3.21
 
 ## License
