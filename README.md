@@ -9,6 +9,7 @@
 
 [See all available tags on hub.docker.com](https://hub.docker.com/r/fabiang/check-jsonschema/tags?ordering=name)
 
+* 0.34.1, 0.34.1-alpine3.21
 * 0.33.3, 0.33.3-alpine3.21
 * 0.33.1, 0.33.1-alpine3.21
 * 0.33.0, 0.33.0-alpine3.21
