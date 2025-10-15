@@ -16,6 +16,12 @@ jobs:
         version:
           - alpine: "3.21"
             python: "3"
+            check-jsonschema: "0.34.1"
+            check-jsonschema-minor: ""
+            check-jsonschema_major: ""
+            latest: false
+          - alpine: "3.21"
+            python: "3"
             check-jsonschema: "0.33.3"
             check-jsonschema-minor: ""
             check-jsonschema_major: ""

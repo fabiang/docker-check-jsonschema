@@ -1,5 +1,5 @@
 # check-jsonschema
-A JSON Schema CLI and pre-commit hook built on jsonschema. The schema may be specified as a local or remote (HTTP or HTTPS) file. (Docker Image)
+[A JSON Schema CLI and pre-commit hook built on jsonschema.](https://github.com/python-jsonschema/check-jsonschema) The schema may be specified as a local or remote (HTTP or HTTPS) file. (Docker Image)
 
 [![fabiang/check-jsonschema](https://img.shields.io/docker/pulls/fabiang/check-jsonschema.svg)](https://hub.docker.com/r/fabiang/check-jsonschema)
 [![fabiang/check-jsonschema](https://badgen.net/github/license/fabiang/docker-check-jsonschema)](https://github.com/fabiang/docker-check-jsonschema)
